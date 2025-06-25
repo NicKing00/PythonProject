@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Wetter App</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <h1>Wetter App</h1>
+
+    <div class="input-section">
+        <input type="text" id="cityInput" placeholder="Stadt eingeben">
+        <button onclick="getWeather()">Wetter anzeigen</button>
+    </div>
+
+    <div id="weatherResult" class="result-section"></div>
+
+    <hr>
+
+    <div class="history-section">
+        <button onclick="getHistory()">Bisherige Abfragen anzeigen</button>
+        <div id="historyResult" class="result-section"></div>
+    </div>
+
+    <script>
+        async function getWeather() {
+            const city = document.getElementById('cityInput').value.trim();
+            const resultDiv = document.getElementById('weatherResult');
+            resultDiv.innerHTML = "";
+
+            if (!city) {
+                resultDiv.innerHTML = "<p style='color:red;'>Bitte gib eine Stadt ein.</p>";
+                return;
+            }
+
+            try {
+                const response = await fetch('/weather', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ city: city })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <h2>Aktuelles Wetter in ${data.city}</h2>
+                        <p><strong>Temperatur:</strong> ${data.temperature}°C</p>
+                        <p><strong>Beschreibung:</strong> ${data.description}</p>
+                        <p><small>Gespeichert am: ${data.timestamp}</small></p>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<p style="color:red;">${data.error}</p>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<p style="color:red;">Fehler beim Abrufen der Wetterdaten.</p>`;
+            }
+        }
+
+        async function getHistory() {
+            const historyDiv = document.getElementById('historyResult');
+            historyDiv.innerHTML = "";
+
+            try {
+                const response = await fetch('/history');
+                const data = await response.json();
+
+                if (data.length === 0) {
+                    historyDiv.innerHTML = "<p>Keine bisherigen Abfragen gespeichert.</p>";
+                    return;
+                }
+
+                let html = "<h3> Bisherige Wetter-Abfragen:</h3><ul>";
+                data.forEach(entry => {
+                    html += `<li>
+                        <strong>${entry.city}</strong>:
+                        ${entry.temperature}°C,
+                        ${entry.description}
+                        <br><small>(${entry.timestamp})</small>
+                    </li>`;
+                });
+                html += "</ul>";
+                historyDiv.innerHTML = html;
+
+            } catch (error) {
+                historyDiv.innerHTML = `<p style="color:red;">Fehler beim Laden der Historie.</p>`;
+            }
+        }
+    </script>
+</body>
+</html>
