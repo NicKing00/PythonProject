@@ -1,0 +1,1 @@
+Diese Webanwendung ermöglicht es, Wetterdaten für eine beliebige Stadt abzufragen. Die abgefragten Daten werden in einer lokalen MongoDB-Datenbank gespeichert und können im Frontend eingesehen werden.
